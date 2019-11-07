@@ -5,6 +5,8 @@ import Enrollment from '../models/Enrollment';
 import Student from '../models/Student';
 import Plan from '../models/Plan';
 
+import Mail from '../../lib/Mail';
+
 class EnrollmentController {
   async index(req, res) {
     const { page = 1 } = req.query;
@@ -77,6 +79,18 @@ class EnrollmentController {
       start_date: parsedStartDate,
       end_date,
       price,
+    });
+
+    await Mail.sendMail({
+      to: `${student.name} <${student.email}>`,
+      subject: 'Matrícula Gympoint efetuada!',
+      template: 'enrollment',
+      context: {
+        studentName: student.name,
+        planTitle: plan.title,
+        planEndDate: end_date,
+        planPrice: price,
+      },
     });
 
     return res.json(enrollment);
