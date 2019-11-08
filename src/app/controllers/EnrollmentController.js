@@ -6,7 +6,8 @@ import Enrollment from '../models/Enrollment';
 import Student from '../models/Student';
 import Plan from '../models/Plan';
 
-import Mail from '../../lib/Mail';
+import EnrollmentMail from '../jobs/EnrollmentMail';
+import Queue from '../../lib/Queue';
 
 class EnrollmentController {
   async index(req, res) {
@@ -82,18 +83,11 @@ class EnrollmentController {
       price,
     });
 
-    await Mail.sendMail({
-      to: `${student.name} <${student.email}>`,
-      subject: 'Matrícula Gympoint efetuada!',
-      template: 'enrollment',
-      context: {
-        studentName: student.name,
-        planTitle: plan.title,
-        planEndDate: format(end_date, "'dia' dd 'de' MMMM 'de' yyyy", {
-          locale: pt,
-        }),
-        planPrice: `R$${price}`,
-      },
+    await Queue.add(EnrollmentMail.key, {
+      student,
+      plan,
+      end_date,
+      price,
     });
 
     return res.json(enrollment);
