@@ -1,5 +1,6 @@
 import * as Yup from 'yup';
-import { addMonths, isBefore, parseISO, startOfDay } from 'date-fns';
+import { addMonths, isBefore, parseISO, startOfDay, format } from 'date-fns';
+import pt from 'date-fns/locale/pt';
 
 import Enrollment from '../models/Enrollment';
 import Student from '../models/Student';
@@ -88,8 +89,10 @@ class EnrollmentController {
       context: {
         studentName: student.name,
         planTitle: plan.title,
-        planEndDate: end_date,
-        planPrice: price,
+        planEndDate: format(end_date, "'dia' dd 'de' MMMM 'de' yyyy", {
+          locale: pt,
+        }),
+        planPrice: `R$${price}`,
       },
     });
 
