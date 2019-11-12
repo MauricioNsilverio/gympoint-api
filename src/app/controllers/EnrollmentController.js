@@ -91,6 +91,48 @@ class EnrollmentController {
 
     return res.json(enrollment);
   }
+
+  async update(req, res) {
+    const enrollment = await Enrollment.findByPk(req.params.id);
+
+    const { plan_id, start_date } = req.body;
+
+    const plan = await Plan.findByPk(plan_id);
+    if (!plan) {
+      return res.status(400).json({ error: 'Plan does not exist' });
+    }
+
+    const parsedStartDate = startOfDay(parseISO(start_date));
+
+    if (isBefore(parsedStartDate, new Date())) {
+      return res.status(400).json({ error: 'Past dates are not permitted' });
+    }
+
+    const end_date = addMonths(parsedStartDate, plan.duration);
+
+    const price = plan.price * plan.duration;
+
+    await enrollment.update({
+      plan_id,
+      start_date: parsedStartDate,
+      end_date,
+      price,
+    });
+
+    return res.json(enrollment);
+  }
+
+  async delete(req, res) {
+    const enrollment = await Enrollment.findByPk(req.params.id);
+
+    if (!enrollment) {
+      return res.status(400).json({ error: 'Enrollment does not exist' });
+    }
+
+    await enrollment.destroy();
+
+    return res.json(enrollment);
+  }
 }
 
 export default new EnrollmentController();
